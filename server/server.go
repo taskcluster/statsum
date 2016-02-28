@@ -3,14 +3,17 @@ package server
 import (
 	"crypto/hmac"
 	"crypto/sha256"
+	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/jonasfj/statsum/aggregator"
@@ -19,12 +22,13 @@ import (
 
 // Config is the options for StatSum server
 type Config struct {
-	Port          string
-	ForceSsl      bool
-	JwtSecret     []byte
-	SignalFxToken string
-	DatadogAPIKey string
-	DatadogAppKey string
+	Port           string
+	JwtSecret      []byte
+	SignalFxToken  string
+	DatadogAPIKey  string
+	DatadogAppKey  string
+	TLSCertificate string
+	TLSKey         string
 }
 
 // StatSum is a server instance.
@@ -58,6 +62,23 @@ func (s *StatSum) Start() error {
 		}
 	}()
 	go s.scheduleSubmission()
+
+	if s.config.TLSCertificate != "" {
+		certificate, err := tls.X509KeyPair(
+			[]byte(s.config.TLSCertificate),
+			[]byte(s.config.TLSKey),
+		)
+		if err != nil {
+			return err
+		}
+
+		s.server.TLSConfig = &tls.Config{
+			NextProtos:   []string{"http/1.1"},
+			Certificates: []tls.Certificate{certificate},
+		}
+		return s.server.ListenAndServeTLS("", "")
+	}
+
 	return s.server.ListenAndServe()
 }
 
@@ -218,17 +239,36 @@ func (s *StatSum) printHealthMetrics() {
 }
 
 func (s *StatSum) scheduleSubmission() {
+	drains := []drain{}
+	if s.config.SignalFxToken != "" {
+		drains = append(drains, newSignalfxDrain(s.config.SignalFxToken))
+	}
 	for {
 		now := time.Now().UTC()
 		nextTime := now.Truncate(5 * time.Minute).Add(5 * time.Minute)
 		time.Sleep(nextTime.Sub(now) + 5*time.Second)
 
 		submitter := func(name string, value float64) {
-			// nextTime
+			for _, drain := range drains {
+				drain.Send(name, value, nextTime)
+			}
 		}
 		s.aggregator.SendMetrics(submitter)
 		if nextTime.Equal(now.Truncate(time.Hour).Add(time.Hour)) {
 			s.aggregator.SendHourlyMetrics(submitter)
+		}
+
+		// Send all metrics
+		wg := sync.WaitGroup{}
+		wg.Add(len(drains))
+		for _, d := range drains {
+			go func(d drain) {
+				err := d.Flush()
+				if err != nil {
+					log.Println("Failed to send metrics to drain, err: ", err)
+				}
+				wg.Done()
+			}(d)
 		}
 	}
 }
