@@ -47,12 +47,13 @@ func main() {
 	switch {
 	case args["server"].(bool):
 		s, err := server.New(server.Config{
-			Port:          os.Getenv("PORT"),
-			ForceSsl:      os.Getenv("FORCE_SSL") != "",
-			JwtSecret:     secret,
-			SignalFxToken: os.Getenv("SIGNALFX_TOKEN"),
-			DatadogAPIKey: os.Getenv("DATADOG_API_KEY"),
-			DatadogAppKey: os.Getenv("DATADOG_APP_KEY"),
+			Port:           os.Getenv("PORT"),
+			TLSCertificate: os.Getenv("TLS_CERTIFICATE"),
+			TLSKey:         os.Getenv("TLS_KEY"),
+			JwtSecret:      secret,
+			SignalFxToken:  os.Getenv("SIGNALFX_TOKEN"),
+			DatadogAPIKey:  os.Getenv("DATADOG_API_KEY"),
+			DatadogAppKey:  os.Getenv("DATADOG_APP_KEY"),
 		})
 		if err != nil {
 			panic(err)

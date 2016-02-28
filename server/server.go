@@ -23,12 +23,12 @@ import (
 // Config is the options for StatSum server
 type Config struct {
 	Port           string
+	TLSCertificate string
+	TLSKey         string
 	JwtSecret      []byte
 	SignalFxToken  string
 	DatadogAPIKey  string
 	DatadogAppKey  string
-	TLSCertificate string
-	TLSKey         string
 }
 
 // StatSum is a server instance.
