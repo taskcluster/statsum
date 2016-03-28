@@ -82,31 +82,31 @@ func auth(project string) string {
 }
 
 func TestHandleCorrectPrefix(t *testing.T) {
-	r, _ := http.NewRequest("POST", "https://statsum.local/data/prefix", jsonBody(testBody))
+	r, _ := http.NewRequest("POST", "https://statsum.local/v1/project/prefix", jsonBody(testBody))
 	r.Header.Set("Content-Type", "application/json")
 	r.Header.Set("Authorization", auth("prefix"))
 	w := doTestRequest(r)
-	assert(w.Code == http.StatusOK, "/data/prefix failed")
+	assert(w.Code == http.StatusOK, "/v1/project/prefix failed")
 }
 
 func TestHandleCorrectPrefixSpecialChars(t *testing.T) {
-	r, _ := http.NewRequest("POST", "https://statsum.local/data/Pre-f_ix9", jsonBody(testBody))
+	r, _ := http.NewRequest("POST", "https://statsum.local/v1/project/Pre-f_ix9", jsonBody(testBody))
 	r.Header.Set("Content-Type", "application/json; charset=utf-8")
 	r.Header.Set("Authorization", auth("Pre-f_ix9"))
 	w := doTestRequest(r)
-	assert(w.Code == http.StatusOK, "/data/prefix failed")
+	assert(w.Code == http.StatusOK, "/v1/project/prefix failed")
 }
 
 func TestHandleMsgPack(t *testing.T) {
-	r, _ := http.NewRequest("POST", "https://statsum.local/data/prefix", msgpBody(testBody))
+	r, _ := http.NewRequest("POST", "https://statsum.local/v1/project/prefix", msgpBody(testBody))
 	r.Header.Set("Content-Type", "application/msgpack")
 	r.Header.Set("Authorization", auth("prefix"))
 	w := doTestRequest(r)
-	assert(w.Code == http.StatusOK, "/data/prefix failed")
+	assert(w.Code == http.StatusOK, "/v1/project/prefix failed")
 }
 
 func TestHandleInvalidJSON(t *testing.T) {
-	r, _ := http.NewRequest("POST", "https://statsum.local/data/prefix", strings.NewReader(`{
+	r, _ := http.NewRequest("POST", "https://statsum.local/v1/project/prefix", strings.NewReader(`{
     wrong json
   }`))
 	r.Header.Set("Content-Type", "application/json")
@@ -116,7 +116,7 @@ func TestHandleInvalidJSON(t *testing.T) {
 }
 
 func TestHandleInvalidContentType(t *testing.T) {
-	r, _ := http.NewRequest("POST", "https://statsum.local/data/prefix", jsonBody(testBody))
+	r, _ := http.NewRequest("POST", "https://statsum.local/v1/project/prefix", jsonBody(testBody))
 	r.Header.Set("Content-Type", "something/wrong")
 	r.Header.Set("Authorization", auth("prefix"))
 	w := doTestRequest(r)
@@ -132,19 +132,19 @@ func TestHandleInvalidPath(t *testing.T) {
 }
 
 func TestHandleMissingPrefix(t *testing.T) {
-	r, _ := http.NewRequest("POST", "https://statsum.local/data/", jsonBody(testBody))
+	r, _ := http.NewRequest("POST", "https://statsum.local/v1/project/", jsonBody(testBody))
 	r.Header.Set("Content-Type", "application/json")
 	r.Header.Set("Authorization", auth(""))
 	w := doTestRequest(r)
-	assert(w.Code == http.StatusNotFound, "/data/ didn't fail")
+	assert(w.Code == http.StatusNotFound, "/v1/project/ didn't fail")
 }
 
 func TestHandleIllegalPrefix(t *testing.T) {
-	r, _ := http.NewRequest("POST", "https://statsum.local/data/d/d", jsonBody(testBody))
+	r, _ := http.NewRequest("POST", "https://statsum.local/v1/project/d/d", jsonBody(testBody))
 	r.Header.Set("Content-Type", "application/json")
 	r.Header.Set("Authorization", auth("d/d"))
 	w := doTestRequest(r)
-	assert(w.Code == http.StatusBadRequest, "/data/d/d didn't fail")
+	assert(w.Code == http.StatusBadRequest, "/v1/project/d/d didn't fail")
 }
 
 func TestParallel(t *testing.T) {
@@ -154,7 +154,7 @@ func TestParallel(t *testing.T) {
 	wg := sync.WaitGroup{}
 	wg.Add(2)
 	go func() {
-		r, _ := http.NewRequest("POST", "https://statsum.local/data/p", jsonBody(payload.Payload{
+		r, _ := http.NewRequest("POST", "https://statsum.local/v1/project/p", jsonBody(payload.Payload{
 			CountMetrics: []payload.CountMetric{
 				{Key: "test-count-1", Value: 1},
 			},
@@ -167,7 +167,7 @@ func TestParallel(t *testing.T) {
 		wg.Done()
 	}()
 	go func() {
-		r, _ := http.NewRequest("POST", "https://statsum.local/data/p", jsonBody(payload.Payload{
+		r, _ := http.NewRequest("POST", "https://statsum.local/v1/project/p", jsonBody(payload.Payload{
 			CountMetrics: []payload.CountMetric{
 				{Key: "test-count-1", Value: 1},
 			},
@@ -220,21 +220,21 @@ func BenchmarkCounts(b *testing.B) {
 
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			r, _ := http.NewRequest("POST", "https://statsum.local/data/p", bytes.NewReader(p1))
+			r, _ := http.NewRequest("POST", "https://statsum.local/v1/project/p", bytes.NewReader(p1))
 			r.Header.Set("Content-Type", "application/json")
 			r.Header.Set("Authorization", authorization)
 			w := httptest.NewRecorder()
 			statsum.handler(w, r)
 			assert(w.Code == http.StatusOK, "Failed to send request 1")
 
-			r, _ = http.NewRequest("POST", "https://statsum.local/data/p", bytes.NewReader(p2))
+			r, _ = http.NewRequest("POST", "https://statsum.local/v1/project/p", bytes.NewReader(p2))
 			r.Header.Set("Content-Type", "application/json")
 			r.Header.Set("Authorization", authorization)
 			w = httptest.NewRecorder()
 			statsum.handler(w, r)
 			assert(w.Code == http.StatusOK, "Failed to send request 2")
 
-			r, _ = http.NewRequest("POST", "https://statsum.local/data/p", bytes.NewReader(p3))
+			r, _ = http.NewRequest("POST", "https://statsum.local/v1/project/p", bytes.NewReader(p3))
 			r.Header.Set("Content-Type", "application/json")
 			r.Header.Set("Authorization", authorization)
 			w = httptest.NewRecorder()
@@ -282,21 +282,21 @@ func BenchmarkValues(b *testing.B) {
 
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			r, _ := http.NewRequest("POST", "https://statsum.local/data/p", bytes.NewReader(p1))
+			r, _ := http.NewRequest("POST", "https://statsum.local/v1/project/p", bytes.NewReader(p1))
 			r.Header.Set("Content-Type", "application/json")
 			r.Header.Set("Authorization", authorization)
 			w := httptest.NewRecorder()
 			statsum.handler(w, r)
 			assert(w.Code == http.StatusOK, "Failed to send request 1")
 
-			r, _ = http.NewRequest("POST", "https://statsum.local/data/p", bytes.NewReader(p2))
+			r, _ = http.NewRequest("POST", "https://statsum.local/v1/project/p", bytes.NewReader(p2))
 			r.Header.Set("Content-Type", "application/json")
 			r.Header.Set("Authorization", authorization)
 			w = httptest.NewRecorder()
 			statsum.handler(w, r)
 			assert(w.Code == http.StatusOK, "Failed to send request 2")
 
-			r, _ = http.NewRequest("POST", "https://statsum.local/data/p", bytes.NewReader(p3))
+			r, _ = http.NewRequest("POST", "https://statsum.local/v1/project/p", bytes.NewReader(p3))
 			r.Header.Set("Content-Type", "application/json")
 			r.Header.Set("Authorization", authorization)
 			w = httptest.NewRecorder()
@@ -317,21 +317,21 @@ func BenchmarkValuesMsgPack(b *testing.B) {
 
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			r, _ := http.NewRequest("POST", "https://statsum.local/data/p", bytes.NewReader(p1))
+			r, _ := http.NewRequest("POST", "https://statsum.local/v1/project/p", bytes.NewReader(p1))
 			r.Header.Set("Content-Type", "application/msgpack")
 			r.Header.Set("Authorization", authorization)
 			w := httptest.NewRecorder()
 			statsum.handler(w, r)
 			assert(w.Code == http.StatusOK, "Failed to send request 1")
 
-			r, _ = http.NewRequest("POST", "https://statsum.local/data/p", bytes.NewReader(p2))
+			r, _ = http.NewRequest("POST", "https://statsum.local/v1/project/p", bytes.NewReader(p2))
 			r.Header.Set("Content-Type", "application/msgpack")
 			r.Header.Set("Authorization", authorization)
 			w = httptest.NewRecorder()
 			statsum.handler(w, r)
 			assert(w.Code == http.StatusOK, "Failed to send request 2")
 
-			r, _ = http.NewRequest("POST", "https://statsum.local/data/p", bytes.NewReader(p3))
+			r, _ = http.NewRequest("POST", "https://statsum.local/v1/project/p", bytes.NewReader(p3))
 			r.Header.Set("Content-Type", "application/msgpack")
 			r.Header.Set("Authorization", authorization)
 			w = httptest.NewRecorder()

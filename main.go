@@ -134,7 +134,7 @@ func main() {
 				auth := "Bearer " + jwt
 
 				// Create url
-				url := baseURL + "/data/my-super-awesome-test-project"
+				url := baseURL + "/v1/project/my-super-awesome-test-project"
 
 				// Create payload
 				i := int((counters / threads) * t)

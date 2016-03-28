@@ -83,8 +83,8 @@ func (s *StatSum) Start() error {
 }
 
 func (s *StatSum) handler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "POST" && strings.HasPrefix(r.URL.Path, "/data/") && len(r.URL.Path) > 6 {
-		project := r.URL.Path[6:]
+	if r.Method == "POST" && strings.HasPrefix(r.URL.Path, "/v1/project/") && len(r.URL.Path) > 12 {
+		project := r.URL.Path[12:]
 		// Validate project
 		if !validateProjectName(project) {
 			reply(w, http.StatusBadRequest, payload.Response{

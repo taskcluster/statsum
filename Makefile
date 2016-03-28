@@ -1,9 +1,18 @@
 
+TAG := v1
+
 install:
 	go install github.com/tinylib/msgp/msgp
 
 generate:
 	go generate ./...
+
+build:
+	go build && docker build -t jonasfj/statsum:latest .
+
+push:
+	docker tag jonasfj/statsum:latest jonasfj/statsum:${TAG}
+	docker push jonasfj/statsum:${TAG}
 
 test:
 	go test -race -v ./...
