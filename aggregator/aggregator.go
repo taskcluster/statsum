@@ -93,10 +93,10 @@ func (a *Aggregator) PrintHealthMetrics() {
 	for project, p := range a.projects {
 		p.RLock()
 		defer p.RUnlock()
-		counterMetrics := len(p.counterMetrics)
-		valueMetrics := len(p.valueMetrics)
+		counters := len(p.counters)
+		measures := len(p.measures)
 		fmt.Println("Project: ", project,
-			" counter metrics: ", counterMetrics,
-			" value metrics: ", valueMetrics)
+			" counter metrics: ", counters,
+			" value metrics: ", measures)
 	}
 }

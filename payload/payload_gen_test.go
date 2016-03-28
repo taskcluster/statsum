@@ -11,8 +11,8 @@ import (
 	"github.com/tinylib/msgp/msgp"
 )
 
-func TestMarshalUnmarshalCountMetric(t *testing.T) {
-	v := CountMetric{}
+func TestMarshalUnmarshalCounter(t *testing.T) {
+	v := Counter{}
 	bts, err := v.MarshalMsg(nil)
 	if err != nil {
 		t.Fatal(err)
@@ -34,8 +34,8 @@ func TestMarshalUnmarshalCountMetric(t *testing.T) {
 	}
 }
 
-func BenchmarkMarshalMsgCountMetric(b *testing.B) {
-	v := CountMetric{}
+func BenchmarkMarshalMsgCounter(b *testing.B) {
+	v := Counter{}
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -43,8 +43,8 @@ func BenchmarkMarshalMsgCountMetric(b *testing.B) {
 	}
 }
 
-func BenchmarkAppendMsgCountMetric(b *testing.B) {
-	v := CountMetric{}
+func BenchmarkAppendMsgCounter(b *testing.B) {
+	v := Counter{}
 	bts := make([]byte, 0, v.Msgsize())
 	bts, _ = v.MarshalMsg(bts[0:0])
 	b.SetBytes(int64(len(bts)))
@@ -55,8 +55,8 @@ func BenchmarkAppendMsgCountMetric(b *testing.B) {
 	}
 }
 
-func BenchmarkUnmarshalCountMetric(b *testing.B) {
-	v := CountMetric{}
+func BenchmarkUnmarshalCounter(b *testing.B) {
+	v := Counter{}
 	bts, _ := v.MarshalMsg(nil)
 	b.ReportAllocs()
 	b.SetBytes(int64(len(bts)))
@@ -69,8 +69,8 @@ func BenchmarkUnmarshalCountMetric(b *testing.B) {
 	}
 }
 
-func TestEncodeDecodeCountMetric(t *testing.T) {
-	v := CountMetric{}
+func TestEncodeDecodeCounter(t *testing.T) {
+	v := Counter{}
 	var buf bytes.Buffer
 	msgp.Encode(&buf, &v)
 
@@ -79,7 +79,7 @@ func TestEncodeDecodeCountMetric(t *testing.T) {
 		t.Logf("WARNING: Msgsize() for %v is inaccurate", v)
 	}
 
-	vn := CountMetric{}
+	vn := Counter{}
 	err := msgp.Decode(&buf, &vn)
 	if err != nil {
 		t.Error(err)
@@ -93,8 +93,8 @@ func TestEncodeDecodeCountMetric(t *testing.T) {
 	}
 }
 
-func BenchmarkEncodeCountMetric(b *testing.B) {
-	v := CountMetric{}
+func BenchmarkEncodeCounter(b *testing.B) {
+	v := Counter{}
 	var buf bytes.Buffer
 	msgp.Encode(&buf, &v)
 	b.SetBytes(int64(buf.Len()))
@@ -107,8 +107,121 @@ func BenchmarkEncodeCountMetric(b *testing.B) {
 	en.Flush()
 }
 
-func BenchmarkDecodeCountMetric(b *testing.B) {
-	v := CountMetric{}
+func BenchmarkDecodeCounter(b *testing.B) {
+	v := Counter{}
+	var buf bytes.Buffer
+	msgp.Encode(&buf, &v)
+	b.SetBytes(int64(buf.Len()))
+	rd := msgp.NewEndlessReader(buf.Bytes(), b)
+	dc := msgp.NewReader(rd)
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		err := v.DecodeMsg(dc)
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func TestMarshalUnmarshalMeasure(t *testing.T) {
+	v := Measure{}
+	bts, err := v.MarshalMsg(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	left, err := v.UnmarshalMsg(bts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(left) > 0 {
+		t.Errorf("%d bytes left over after UnmarshalMsg(): %q", len(left), left)
+	}
+
+	left, err = msgp.Skip(bts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(left) > 0 {
+		t.Errorf("%d bytes left over after Skip(): %q", len(left), left)
+	}
+}
+
+func BenchmarkMarshalMsgMeasure(b *testing.B) {
+	v := Measure{}
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		v.MarshalMsg(nil)
+	}
+}
+
+func BenchmarkAppendMsgMeasure(b *testing.B) {
+	v := Measure{}
+	bts := make([]byte, 0, v.Msgsize())
+	bts, _ = v.MarshalMsg(bts[0:0])
+	b.SetBytes(int64(len(bts)))
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		bts, _ = v.MarshalMsg(bts[0:0])
+	}
+}
+
+func BenchmarkUnmarshalMeasure(b *testing.B) {
+	v := Measure{}
+	bts, _ := v.MarshalMsg(nil)
+	b.ReportAllocs()
+	b.SetBytes(int64(len(bts)))
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, err := v.UnmarshalMsg(bts)
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func TestEncodeDecodeMeasure(t *testing.T) {
+	v := Measure{}
+	var buf bytes.Buffer
+	msgp.Encode(&buf, &v)
+
+	m := v.Msgsize()
+	if buf.Len() > m {
+		t.Logf("WARNING: Msgsize() for %v is inaccurate", v)
+	}
+
+	vn := Measure{}
+	err := msgp.Decode(&buf, &vn)
+	if err != nil {
+		t.Error(err)
+	}
+
+	buf.Reset()
+	msgp.Encode(&buf, &v)
+	err = msgp.NewReader(&buf).Skip()
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func BenchmarkEncodeMeasure(b *testing.B) {
+	v := Measure{}
+	var buf bytes.Buffer
+	msgp.Encode(&buf, &v)
+	b.SetBytes(int64(buf.Len()))
+	en := msgp.NewWriter(msgp.Nowhere)
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		v.EncodeMsg(en)
+	}
+	en.Flush()
+}
+
+func BenchmarkDecodeMeasure(b *testing.B) {
+	v := Measure{}
 	var buf bytes.Buffer
 	msgp.Encode(&buf, &v)
 	b.SetBytes(int64(buf.Len()))
@@ -222,119 +335,6 @@ func BenchmarkEncodePayload(b *testing.B) {
 
 func BenchmarkDecodePayload(b *testing.B) {
 	v := Payload{}
-	var buf bytes.Buffer
-	msgp.Encode(&buf, &v)
-	b.SetBytes(int64(buf.Len()))
-	rd := msgp.NewEndlessReader(buf.Bytes(), b)
-	dc := msgp.NewReader(rd)
-	b.ReportAllocs()
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		err := v.DecodeMsg(dc)
-		if err != nil {
-			b.Fatal(err)
-		}
-	}
-}
-
-func TestMarshalUnmarshalValueMetric(t *testing.T) {
-	v := ValueMetric{}
-	bts, err := v.MarshalMsg(nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	left, err := v.UnmarshalMsg(bts)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(left) > 0 {
-		t.Errorf("%d bytes left over after UnmarshalMsg(): %q", len(left), left)
-	}
-
-	left, err = msgp.Skip(bts)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(left) > 0 {
-		t.Errorf("%d bytes left over after Skip(): %q", len(left), left)
-	}
-}
-
-func BenchmarkMarshalMsgValueMetric(b *testing.B) {
-	v := ValueMetric{}
-	b.ReportAllocs()
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		v.MarshalMsg(nil)
-	}
-}
-
-func BenchmarkAppendMsgValueMetric(b *testing.B) {
-	v := ValueMetric{}
-	bts := make([]byte, 0, v.Msgsize())
-	bts, _ = v.MarshalMsg(bts[0:0])
-	b.SetBytes(int64(len(bts)))
-	b.ReportAllocs()
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		bts, _ = v.MarshalMsg(bts[0:0])
-	}
-}
-
-func BenchmarkUnmarshalValueMetric(b *testing.B) {
-	v := ValueMetric{}
-	bts, _ := v.MarshalMsg(nil)
-	b.ReportAllocs()
-	b.SetBytes(int64(len(bts)))
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		_, err := v.UnmarshalMsg(bts)
-		if err != nil {
-			b.Fatal(err)
-		}
-	}
-}
-
-func TestEncodeDecodeValueMetric(t *testing.T) {
-	v := ValueMetric{}
-	var buf bytes.Buffer
-	msgp.Encode(&buf, &v)
-
-	m := v.Msgsize()
-	if buf.Len() > m {
-		t.Logf("WARNING: Msgsize() for %v is inaccurate", v)
-	}
-
-	vn := ValueMetric{}
-	err := msgp.Decode(&buf, &vn)
-	if err != nil {
-		t.Error(err)
-	}
-
-	buf.Reset()
-	msgp.Encode(&buf, &v)
-	err = msgp.NewReader(&buf).Skip()
-	if err != nil {
-		t.Error(err)
-	}
-}
-
-func BenchmarkEncodeValueMetric(b *testing.B) {
-	v := ValueMetric{}
-	var buf bytes.Buffer
-	msgp.Encode(&buf, &v)
-	b.SetBytes(int64(buf.Len()))
-	en := msgp.NewWriter(msgp.Nowhere)
-	b.ReportAllocs()
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		v.EncodeMsg(en)
-	}
-	en.Flush()
-}
-
-func BenchmarkDecodeValueMetric(b *testing.B) {
-	v := ValueMetric{}
 	var buf bytes.Buffer
 	msgp.Encode(&buf, &v)
 	b.SetBytes(int64(buf.Len()))

@@ -142,7 +142,7 @@ func main() {
 				newPayload := func() *payload.Payload {
 					p := payload.Payload{}
 					for c := 0; c < counters; c++ {
-						p.CountMetrics = append(p.CountMetrics, payload.CountMetric{
+						p.Counters = append(p.Counters, payload.Counter{
 							Key:   fmt.Sprint(i, "-my-test-counter-", i),
 							Value: math.Floor(rand.Float64() * 100),
 						})
@@ -153,7 +153,7 @@ func main() {
 						for x := 0; x < points; x++ {
 							data[x] = rand.Float64() * 30000
 						}
-						p.ValueMetrics = append(p.ValueMetrics, payload.ValueMetric{
+						p.Measures = append(p.Measures, payload.Measure{
 							Key:   fmt.Sprint(j, "-my-test-value-", j),
 							Value: data,
 						})

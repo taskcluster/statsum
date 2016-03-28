@@ -40,10 +40,10 @@ func doTestRequest(r *http.Request) *httptest.ResponseRecorder {
 }
 
 var testBody = payload.Payload{
-	CountMetrics: []payload.CountMetric{
+	Counters: []payload.Counter{
 		{Key: "test-count", Value: 42},
 	},
-	ValueMetrics: []payload.ValueMetric{
+	Measures: []payload.Measure{
 		{Key: "test-measure", Value: []float64{1, 2, 3, 4, 5, 6, 7, 8, 9}},
 	},
 }
@@ -155,7 +155,7 @@ func TestParallel(t *testing.T) {
 	wg.Add(2)
 	go func() {
 		r, _ := http.NewRequest("POST", "https://statsum.local/v1/project/p", jsonBody(payload.Payload{
-			CountMetrics: []payload.CountMetric{
+			Counters: []payload.Counter{
 				{Key: "test-count-1", Value: 1},
 			},
 		}))
@@ -168,7 +168,7 @@ func TestParallel(t *testing.T) {
 	}()
 	go func() {
 		r, _ := http.NewRequest("POST", "https://statsum.local/v1/project/p", jsonBody(payload.Payload{
-			CountMetrics: []payload.CountMetric{
+			Counters: []payload.Counter{
 				{Key: "test-count-1", Value: 1},
 			},
 		}))
@@ -183,7 +183,7 @@ func TestParallel(t *testing.T) {
 }
 
 var pc1 = payload.Payload{
-	CountMetrics: []payload.CountMetric{
+	Counters: []payload.Counter{
 		{Key: "test-count-1", Value: 1},
 		{Key: "test-count-2", Value: 1},
 		{Key: "test-count-3", Value: 1},
@@ -192,7 +192,7 @@ var pc1 = payload.Payload{
 	},
 }
 var pc2 = payload.Payload{
-	CountMetrics: []payload.CountMetric{
+	Counters: []payload.Counter{
 		{Key: "test-count-6", Value: 1},
 		{Key: "test-count-1", Value: 1},
 		{Key: "test-count-7", Value: 1},
@@ -201,7 +201,7 @@ var pc2 = payload.Payload{
 	},
 }
 var pc3 = payload.Payload{
-	CountMetrics: []payload.CountMetric{
+	Counters: []payload.Counter{
 		{Key: "test-count-7", Value: 1},
 		{Key: "test-count-9", Value: 1},
 		{Key: "test-count-8", Value: 1},
@@ -245,7 +245,7 @@ func BenchmarkCounts(b *testing.B) {
 }
 
 var pv1 = payload.Payload{
-	ValueMetrics: []payload.ValueMetric{
+	Measures: []payload.Measure{
 		{Key: "test-count-1", Value: []float64{1, 2, 3, 4, 5, 6, 7, 8, 10}},
 		{Key: "test-count-2", Value: []float64{1, 2, 3, 4, 5, 6, 7, 8, 10}},
 		{Key: "test-count-3", Value: []float64{1, 2, 3, 4, 5, 6, 7, 8, 10}},
@@ -254,7 +254,7 @@ var pv1 = payload.Payload{
 	},
 }
 var pv2 = payload.Payload{
-	ValueMetrics: []payload.ValueMetric{
+	Measures: []payload.Measure{
 		{Key: "test-count-6", Value: []float64{1, 2, 3, 4, 5, 6, 7, 8, 10}},
 		{Key: "test-count-1", Value: []float64{1, 2, 3, 4, 5, 6, 7, 8, 10}},
 		{Key: "test-count-7", Value: []float64{1, 2, 3, 4, 5, 6, 7, 8, 10}},
@@ -263,7 +263,7 @@ var pv2 = payload.Payload{
 	},
 }
 var pv3 = payload.Payload{
-	ValueMetrics: []payload.ValueMetric{
+	Measures: []payload.Measure{
 		{Key: "test-count-7", Value: []float64{1, 2, 3, 4, 5, 6, 7, 8, 10}},
 		{Key: "test-count-9", Value: []float64{1, 2, 3, 4, 5, 6, 7, 8, 10}},
 		{Key: "test-count-8", Value: []float64{1, 2, 3, 4, 5, 6, 7, 8, 10}},

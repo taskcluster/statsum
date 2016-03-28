@@ -8,19 +8,19 @@ import (
 
 const tdigestCompressionLevel = 10
 
-type valueMetric struct {
+type measure struct {
 	m             sync.Mutex
 	digest        *tdigest.MergingDigest
 	hourlySummary []tdigest.Centroid
 }
 
-func newValueMetric() *valueMetric {
-	return &valueMetric{
+func newMeasure() *measure {
+	return &measure{
 		digest: tdigest.New(tdigestCompressionLevel),
 	}
 }
 
-func (v *valueMetric) process(values []float64) {
+func (v *measure) process(values []float64) {
 	v.m.Lock()
 	defer v.m.Unlock()
 	for _, value := range values {
@@ -28,7 +28,7 @@ func (v *valueMetric) process(values []float64) {
 	}
 }
 
-func (v *valueMetric) sendMetrics(prefix string, name string, handler MetricHandler) {
+func (v *measure) sendMetrics(prefix string, name string, handler MetricHandler) {
 	v.m.Lock()
 	min := v.digest.Quantile(0)
 	p25 := v.digest.Quantile(0.25)
@@ -53,7 +53,7 @@ func (v *valueMetric) sendMetrics(prefix string, name string, handler MetricHand
 	handler(prefix+"."+name+".5m.max", max)
 }
 
-func (v *valueMetric) sendHourlyMetrics(prefix string, name string, handler MetricHandler) {
+func (v *measure) sendHourlyMetrics(prefix string, name string, handler MetricHandler) {
 	v.m.Lock()
 	summary := v.hourlySummary
 	v.hourlySummary = nil

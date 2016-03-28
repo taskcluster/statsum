@@ -1,23 +1,23 @@
-//go:generate msgp.v0
+//go:generate msgp
 //go:generate ffjson $GOFILE
 
 package payload
 
-// A CountMetric is a metric that is to be aggregated by simple summation.
-type CountMetric struct {
+// A Counter is a metric that is to be aggregated by simple summation.
+type Counter struct {
 	Key   string  `json:"k" msg:"k"`
 	Value float64 `json:"v" msg:"v"`
 }
 
-// A ValueMetric is metric that is to be aggregated as a series of discrete
+// A Measure is metric that is to be aggregated as a series of discrete
 // values, by estimation of percentiles.
-type ValueMetric struct {
+type Measure struct {
 	Key   string    `json:"k" msg:"k"`
 	Value []float64 `json:"v" msg:"v"`
 }
 
 // A Payload is the payload of a single request.
 type Payload struct {
-	CountMetrics []CountMetric `json:"countMetrics" msg:"countMetrics"`
-	ValueMetrics []ValueMetric `json:"valueMetrics" msg:"valueMetrics"`
+	Counters []Counter `json:"counters" msg:"counters"`
+	Measures []Measure `json:"measures" msg:"measures"`
 }

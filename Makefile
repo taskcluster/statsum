@@ -2,7 +2,8 @@
 TAG := v1
 
 install:
-	go install github.com/tinylib/msgp/msgp
+	go get github.com/tinylib/msgp
+	go get github.com/pquerna/ffjson
 
 generate:
 	go generate ./...
