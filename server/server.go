@@ -52,6 +52,8 @@ func New(config Config) (*StatSum, error) {
 	s.server.ReadTimeout = 5000 * time.Second
 	s.server.WriteTimeout = 25 * time.Second
 	s.server.MaxHeaderBytes = 1 << 20
+	// Disable keep alive, clients shouldn't be sending metrics with 90s interval
+	s.server.SetKeepAlivesEnabled(false)
 	return &s, nil
 }
 
