@@ -179,9 +179,9 @@ failed:
 }
 
 func (s *StatSum) parse(project string, w http.ResponseWriter, r *http.Request) {
-	// Check that the nonce is unique, so we can retry without duplication
-	nonce := uuid.Parse(r.Header.Get("X-Statsum-Nonce"))
-	if nonce != nil && s.hashSet.Contains(nonce) {
+	// Check that the request-id is unique, so we can retry without duplication
+	reqID := uuid.Parse(r.Header.Get("X-Statsum-Request-Id"))
+	if reqID != nil && s.hashSet.Contains(reqID) {
 		reply(w, http.StatusOK, payload.Response{
 			Code:    "PayloadAccepted",
 			Message: "Payload have already been aggregated before",
@@ -233,9 +233,9 @@ func (s *StatSum) parse(project string, w http.ResponseWriter, r *http.Request) 
 	// Aggregate data
 	s.process(project, &p)
 
-	// Insert nonce so we don't aggregate this twice
-	if nonce != nil {
-		s.hashSet.Insert(nonce)
+	// Insert reqID so we don't aggregate this twice
+	if reqID != nil {
+		s.hashSet.Insert(reqID)
 	}
 
 	// Send a response 200 OK reply

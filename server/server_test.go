@@ -132,17 +132,17 @@ func TestAggretation(t *testing.T) {
 	assert(testMeasureMax == 9, "Expected prefix.test-measure.5m.max = 9")
 }
 
-func TestAggretationWithNonce(t *testing.T) {
+func TestAggretationWithReqId(t *testing.T) {
 	r, _ := http.NewRequest("POST", "https://statsum.local/v1/project/prefix", jsonBody(testBody))
 	r.Header.Set("Content-Type", "application/json")
-	r.Header.Set("X-Statsum-Nonce", uuid.NewRandom().String())
+	r.Header.Set("X-Statsum-Request-Id", uuid.NewRandom().String())
 	r.Header.Set("Authorization", auth("prefix"))
 	w, s := doTestRequest(r, nil)
 	assert(w.Code == http.StatusOK, "/v1/project/prefix failed")
 	// Send another request
 	r, _ = http.NewRequest("POST", "https://statsum.local/v1/project/prefix", jsonBody(testBody))
 	r.Header.Set("Content-Type", "application/json")
-	r.Header.Set("X-Statsum-Nonce", uuid.NewRandom().String())
+	r.Header.Set("X-Statsum-Request-Id", uuid.NewRandom().String())
 	r.Header.Set("Authorization", auth("prefix"))
 	w, s = doTestRequest(r, s)
 	assert(w.Code == http.StatusOK, "/v1/project/prefix failed")
@@ -162,17 +162,17 @@ func TestAggretationWithNonce(t *testing.T) {
 }
 
 func TestAggretationWithRetries(t *testing.T) {
-	nonce := uuid.NewRandom().String()
+	reqID := uuid.NewRandom().String()
 	r, _ := http.NewRequest("POST", "https://statsum.local/v1/project/prefix", jsonBody(testBody))
 	r.Header.Set("Content-Type", "application/json")
-	r.Header.Set("X-Statsum-Nonce", nonce)
+	r.Header.Set("X-Statsum-Request-Id", reqID)
 	r.Header.Set("Authorization", auth("prefix"))
 	w, s := doTestRequest(r, nil)
 	assert(w.Code == http.StatusOK, "/v1/project/prefix failed")
-	// Send another request with same nonce
+	// Send another request with same Request-Id
 	r, _ = http.NewRequest("POST", "https://statsum.local/v1/project/prefix", jsonBody(testBody))
 	r.Header.Set("Content-Type", "application/json")
-	r.Header.Set("X-Statsum-Nonce", nonce)
+	r.Header.Set("X-Statsum-Request-Id", reqID)
 	r.Header.Set("Authorization", auth("prefix"))
 	w, s = doTestRequest(r, s)
 	assert(w.Code == http.StatusOK, "/v1/project/prefix failed")
@@ -346,7 +346,7 @@ func BenchmarkCounts(b *testing.B) {
 	})
 }
 
-func BenchmarkCountsWithNonce(b *testing.B) {
+func BenchmarkCountsWithReqId(b *testing.B) {
 	statsum, err := New(Config{JwtSecret: []byte("secret")})
 	nilOrPanic(err, "Failed to create statsum")
 	authorization := auth("p")
@@ -358,7 +358,7 @@ func BenchmarkCountsWithNonce(b *testing.B) {
 		for pb.Next() {
 			r, _ := http.NewRequest("POST", "https://statsum.local/v1/project/p", bytes.NewReader(p1))
 			r.Header.Set("Content-Type", "application/json")
-			r.Header.Set("X-Statsum-Nonce", uuid.NewRandom().String())
+			r.Header.Set("X-Statsum-Request-Id", uuid.NewRandom().String())
 			r.Header.Set("Authorization", authorization)
 			w := httptest.NewRecorder()
 			statsum.handler(w, r)
@@ -366,7 +366,7 @@ func BenchmarkCountsWithNonce(b *testing.B) {
 
 			r, _ = http.NewRequest("POST", "https://statsum.local/v1/project/p", bytes.NewReader(p2))
 			r.Header.Set("Content-Type", "application/json")
-			r.Header.Set("X-Statsum-Nonce", uuid.NewRandom().String())
+			r.Header.Set("X-Statsum-Request-Id", uuid.NewRandom().String())
 			r.Header.Set("Authorization", authorization)
 			w = httptest.NewRecorder()
 			statsum.handler(w, r)
@@ -374,7 +374,7 @@ func BenchmarkCountsWithNonce(b *testing.B) {
 
 			r, _ = http.NewRequest("POST", "https://statsum.local/v1/project/p", bytes.NewReader(p3))
 			r.Header.Set("Content-Type", "application/json")
-			r.Header.Set("X-Statsum-Nonce", uuid.NewRandom().String())
+			r.Header.Set("X-Statsum-Request-Id", uuid.NewRandom().String())
 			r.Header.Set("Authorization", authorization)
 			w = httptest.NewRecorder()
 			statsum.handler(w, r)
@@ -445,7 +445,7 @@ func BenchmarkValues(b *testing.B) {
 	})
 }
 
-func BenchmarkValuesWithNonce(b *testing.B) {
+func BenchmarkValuesWithReqId(b *testing.B) {
 	statsum, err := New(Config{JwtSecret: []byte("secret")})
 	nilOrPanic(err, "Failed to create statsum")
 	authorization := auth("p")
@@ -457,7 +457,7 @@ func BenchmarkValuesWithNonce(b *testing.B) {
 		for pb.Next() {
 			r, _ := http.NewRequest("POST", "https://statsum.local/v1/project/p", bytes.NewReader(p1))
 			r.Header.Set("Content-Type", "application/json")
-			r.Header.Set("X-Statsum-Nonce", uuid.NewRandom().String())
+			r.Header.Set("X-Statsum-Request-Id", uuid.NewRandom().String())
 			r.Header.Set("Authorization", authorization)
 			w := httptest.NewRecorder()
 			statsum.handler(w, r)
@@ -465,7 +465,7 @@ func BenchmarkValuesWithNonce(b *testing.B) {
 
 			r, _ = http.NewRequest("POST", "https://statsum.local/v1/project/p", bytes.NewReader(p2))
 			r.Header.Set("Content-Type", "application/json")
-			r.Header.Set("X-Statsum-Nonce", uuid.NewRandom().String())
+			r.Header.Set("X-Statsum-Request-Id", uuid.NewRandom().String())
 			r.Header.Set("Authorization", authorization)
 			w = httptest.NewRecorder()
 			statsum.handler(w, r)
@@ -473,7 +473,7 @@ func BenchmarkValuesWithNonce(b *testing.B) {
 
 			r, _ = http.NewRequest("POST", "https://statsum.local/v1/project/p", bytes.NewReader(p3))
 			r.Header.Set("Content-Type", "application/json")
-			r.Header.Set("X-Statsum-Nonce", uuid.NewRandom().String())
+			r.Header.Set("X-Statsum-Request-Id", uuid.NewRandom().String())
 			r.Header.Set("Authorization", authorization)
 			w = httptest.NewRecorder()
 			statsum.handler(w, r)
