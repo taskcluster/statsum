@@ -52,7 +52,9 @@ func New(config Config) (*StatSum, error) {
 	s.server.ReadTimeout = 5000 * time.Second
 	s.server.WriteTimeout = 25 * time.Second
 	s.server.MaxHeaderBytes = 1 << 20
-	// Disable keep alive, clients shouldn't be sending metrics with 90s interval
+	// Disable keep alive, clients should opening a new TCP connection
+	// everytime, as they submit with a 90s interval, so most load-balancers
+	// would close the idle connection anyways.
 	s.server.SetKeepAlivesEnabled(false)
 	return &s, nil
 }
