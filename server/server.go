@@ -18,6 +18,7 @@ import (
 
 	"github.com/jonasfj/statsum/aggregator"
 	"github.com/jonasfj/statsum/payload"
+	"github.com/pborman/uuid"
 )
 
 // Config is the options for StatSum server
@@ -36,6 +37,7 @@ type StatSum struct {
 	config     Config
 	server     http.Server
 	aggregator *aggregator.Aggregator
+	hashSet    fixedHashSet
 }
 
 // New returns a new StatSum
@@ -50,6 +52,10 @@ func New(config Config) (*StatSum, error) {
 	s.server.ReadTimeout = 5000 * time.Second
 	s.server.WriteTimeout = 25 * time.Second
 	s.server.MaxHeaderBytes = 1 << 20
+	// Disable keep alive, clients should opening a new TCP connection
+	// everytime, as they submit with a 90s interval, so most load-balancers
+	// would close the idle connection anyways.
+	s.server.SetKeepAlivesEnabled(false)
 	return &s, nil
 }
 
@@ -96,6 +102,7 @@ func (s *StatSum) handler(w http.ResponseWriter, r *http.Request) {
 		if !s.authorize(project, w, r) {
 			return
 		}
+
 		s.parse(project, w, r)
 		return
 	}
@@ -176,6 +183,16 @@ failed:
 }
 
 func (s *StatSum) parse(project string, w http.ResponseWriter, r *http.Request) {
+	// Check that the request-id is unique, so we can retry without duplication
+	reqID := uuid.Parse(r.Header.Get("X-Statsum-Request-Id"))
+	if reqID != nil && s.hashSet.Contains(reqID) {
+		reply(w, http.StatusOK, payload.Response{
+			Code:    "PayloadAccepted",
+			Message: "Payload have already been aggregated before",
+		}, detectResponseType(r, NoFormat))
+		return
+	}
+
 	// Read body
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -217,7 +234,13 @@ func (s *StatSum) parse(project string, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	// Aggregate data
 	s.process(project, &p)
+
+	// Insert reqID so we don't aggregate this twice
+	if reqID != nil {
+		s.hashSet.Insert(reqID)
+	}
 
 	// Send a response 200 OK reply
 	reply(w, http.StatusOK, payload.Response{

@@ -99,6 +99,7 @@ func reply(w http.ResponseWriter, statusCode int, r payload.Response, responseTy
 
 	// Add Content-Length, send header and body
 	w.Header().Set("Content-Length", strconv.Itoa(len(b)))
+	w.Header().Set("Connection", "close")
 	w.WriteHeader(statusCode)
 	w.Write(b)
 }
