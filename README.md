@@ -9,6 +9,28 @@ For every 5 minute and 1 hour interval the service will forward estimated
 percentiles (and aggregated counters) to a time series service like signalfx,
 datadog or similar service.
 
+### Submitting Data
+
+Data is submitted as follows using a project specific `jwt-token` and a request specific `uuid`.
+The `uuid` should be reused when a request is retried due to connection error, this avoids duplication of values.
+
+```
+POST /v1/project/<projectName>
+content-type:         application/json
+accept:               application/json
+authorization:        bearer <jwt-token>
+x-statsum-request-id: <uuid>
+{
+  "counters": [ // values for a counter are summed up
+    {"k": "name.of.counter", v: 5},
+  ],
+  "measures: [ // values for a meaure is fed to a t-digest for percentile estimation
+    {"k": "name.of.measure", v: [3,4,5,65,5,5,7,8,9]},
+  ]
+}
+```
+
+Generally, it's sane to accumulate metrics for 30 to 90 seconds before flushing. As statsum will only report every 5min.
 
 ### Motivation
 Services like signalfx, datadog, stathat, etc. cannot compute or estimate
