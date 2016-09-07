@@ -18,6 +18,7 @@ The `uuid` should be reused when a request is retried due to connection error, t
 POST /v1/project/<projectName>
 content-type:         application/json
 accept:               application/json
+content-length:       <length>
 authorization:        bearer <jwt-token>
 x-statsum-request-id: <uuid>
 {
@@ -30,7 +31,7 @@ x-statsum-request-id: <uuid>
 }
 ```
 
-Generally, it's sane to accumulate metrics for 30 to 90 seconds before flushing. As statsum will only report every 5min.
+As a rule of thumb, it is reasonable to accumulate metrics for 30 to 90 seconds before flushing. As statsum will only reports every 5min.
 
 ### Motivation
 Services like signalfx, datadog, stathat, etc. cannot compute or estimate
