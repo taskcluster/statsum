@@ -34,10 +34,12 @@ type Config struct {
 
 // StatSum is a server instance.
 type StatSum struct {
-	config     Config
-	server     http.Server
-	aggregator *aggregator.Aggregator
-	hashSet    fixedHashSet
+	config       Config
+	server       http.Server
+	aggregator   *aggregator.Aggregator
+	hashSet      fixedHashSet
+	mMetrics     sync.Mutex
+	requestCount int
 }
 
 // New returns a new StatSum
@@ -67,6 +69,7 @@ func (s *StatSum) Start() error {
 			s.printHealthMetrics()
 		}
 	}()
+	go s.aggregateInternalMetrics()
 	go s.scheduleSubmission()
 
 	if s.config.TLSCertificate != "" {
@@ -234,6 +237,10 @@ func (s *StatSum) parse(project string, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	s.mMetrics.Lock()
+	s.requestCount++
+	s.mMetrics.Unlock()
+
 	// Aggregate data
 	s.process(project, &p)
 
@@ -251,6 +258,41 @@ func (s *StatSum) parse(project string, w http.ResponseWriter, r *http.Request) 
 
 func (s *StatSum) process(project string, payload *payload.Payload) {
 	s.aggregator.Process(project, payload)
+}
+
+func (s *StatSum) aggregateInternalMetrics() {
+	for {
+		time.Sleep(30 * time.Second)
+		s.mMetrics.Lock()
+		requestCount := s.requestCount
+		s.requestCount = 0
+		s.mMetrics.Unlock()
+
+		mem := runtime.MemStats{}
+		runtime.ReadMemStats(&mem)
+		s.aggregator.Process("statsum", &payload.Payload{
+			Measures: []payload.Measure{
+				payload.Measure{
+					Key: "projects",
+					Value: []float64{
+						float64(len(s.aggregator.ProjectNames())),
+					},
+				},
+				payload.Measure{
+					Key: "memory-usage",
+					Value: []float64{
+						float64(mem.Alloc),
+					},
+				},
+			},
+			Counters: []payload.Counter{
+				payload.Counter{
+					Key:   "requests",
+					Value: float64(requestCount),
+				},
+			},
+		})
+	}
 }
 
 func (s *StatSum) printHealthMetrics() {
