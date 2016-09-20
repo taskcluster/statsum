@@ -3,7 +3,7 @@ package aggregator
 import (
 	"sync"
 
-	"github.com/jonasfj/statsum/payload"
+	"github.com/taskcluster/statsum/payload"
 )
 
 // A Project aggregates metrics for a entire project.

@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jonasfj/statsum/payload"
+	"github.com/taskcluster/statsum/payload"
 )
 
 func validateProjectName(project string) bool {

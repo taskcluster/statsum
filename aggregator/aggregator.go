@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/jonasfj/statsum/payload"
+	"github.com/taskcluster/statsum/payload"
 )
 
 // Aggregator holds all Projects

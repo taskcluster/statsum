@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jonasfj/statsum/payload"
+	"github.com/taskcluster/statsum/payload"
 	"github.com/pborman/uuid"
 
 	"gopkg.in/dgrijalva/jwt-go.v2"

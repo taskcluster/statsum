@@ -17,8 +17,8 @@ import (
 	"time"
 
 	raven "github.com/getsentry/raven-go"
-	"github.com/jonasfj/statsum/aggregator"
-	"github.com/jonasfj/statsum/payload"
+	"github.com/taskcluster/statsum/aggregator"
+	"github.com/taskcluster/statsum/payload"
 	"github.com/pborman/uuid"
 )
 

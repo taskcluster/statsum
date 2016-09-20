@@ -18,8 +18,8 @@ import (
 	"gopkg.in/dgrijalva/jwt-go.v2"
 
 	"github.com/docopt/docopt-go"
-	"github.com/jonasfj/statsum/payload"
-	"github.com/jonasfj/statsum/server"
+	"github.com/taskcluster/statsum/payload"
+	"github.com/taskcluster/statsum/server"
 )
 
 const usage = `statsum
