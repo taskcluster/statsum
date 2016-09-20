@@ -24,6 +24,10 @@ func newSignalfxDrain(token string) *signalfxDrain {
 	}
 }
 
+func (s *signalfxDrain) Name() string {
+	return "signalfx"
+}
+
 func (s *signalfxDrain) Send(name string, value float64, time time.Time) {
 	dataPoint := datapoint.New(name, nil, datapoint.NewFloatValue(value), datapoint.Gauge, time)
 	s.points = append(s.points, dataPoint)
