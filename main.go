@@ -54,6 +54,7 @@ func main() {
 			SignalFxToken:  os.Getenv("SIGNALFX_TOKEN"),
 			DatadogAPIKey:  os.Getenv("DATADOG_API_KEY"),
 			DatadogAppKey:  os.Getenv("DATADOG_APP_KEY"),
+			SentryDSN:      os.Getenv("SENTRY_DSN"),
 		})
 		if err != nil {
 			panic(err)

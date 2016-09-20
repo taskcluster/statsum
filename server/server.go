@@ -16,6 +16,7 @@ import (
 	"sync"
 	"time"
 
+	raven "github.com/getsentry/raven-go"
 	"github.com/jonasfj/statsum/aggregator"
 	"github.com/jonasfj/statsum/payload"
 	"github.com/pborman/uuid"
@@ -30,6 +31,7 @@ type Config struct {
 	SignalFxToken  string
 	DatadogAPIKey  string
 	DatadogAppKey  string
+	SentryDSN      string
 }
 
 // StatSum is a server instance.
@@ -38,6 +40,7 @@ type StatSum struct {
 	server       http.Server
 	aggregator   *aggregator.Aggregator
 	hashSet      fixedHashSet
+	sentry       *raven.Client
 	mMetrics     sync.Mutex
 	requestCount int
 }
@@ -58,6 +61,13 @@ func New(config Config) (*StatSum, error) {
 	// everytime, as they submit with a 90s interval, so most load-balancers
 	// would close the idle connection anyways.
 	s.server.SetKeepAlivesEnabled(false)
+	if config.SentryDSN != "" {
+		var err error
+		s.sentry, err = raven.New(config.SentryDSN)
+		if err != nil {
+			return nil, fmt.Errorf("Invalid SentryDSN option, error: %s", err)
+		}
+	}
 	return &s, nil
 }
 
@@ -330,6 +340,7 @@ func (s *StatSum) scheduleSubmission() {
 			go func(d drain) {
 				err := d.Flush()
 				if err != nil {
+					s.sentry.CaptureErrorAndWait(err, map[string]string{"drain": d.Name()})
 					log.Println("Failed to send metrics to drain, err: ", err)
 				}
 				wg.Done()
