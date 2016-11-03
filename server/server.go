@@ -286,7 +286,7 @@ func (s *StatSum) aggregateInternalMetrics() {
 		cpuUsage, err := cpu.Percent(0, false)
 		if err == nil {
 			measures = append(measures, payload.Measure{
-				Key:   "cpu",
+				Key:   "cpu-usage",
 				Value: []float64{cpuUsage[0]},
 			})
 		}
