@@ -19,7 +19,7 @@ func (s *fixedHashSet) Contains(hash []byte) bool {
 	// Find relevant shard
 	shard := &s.shards[(hash[0]^hash[1]^hash[2]^hash[3])%64]
 
-	// Aqcuire read lock
+	// Acquire read lock
 	shard.rLock.Lock()
 	defer shard.rLock.Unlock()
 

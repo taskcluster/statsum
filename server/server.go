@@ -17,9 +17,10 @@ import (
 	"time"
 
 	raven "github.com/getsentry/raven-go"
+	"github.com/pborman/uuid"
+	"github.com/shirou/gopsutil/cpu"
 	"github.com/taskcluster/statsum/aggregator"
 	"github.com/taskcluster/statsum/payload"
-	"github.com/pborman/uuid"
 )
 
 // Config is the options for StatSum server
@@ -160,6 +161,9 @@ func (s *StatSum) authorize(project string, w http.ResponseWriter, r *http.Reque
 
 		signingString := token[:len(parts[0])+len(parts[1])+1]
 		rawSignature, err := base64.RawURLEncoding.DecodeString(parts[2])
+		if err != nil {
+			goto failed
+		}
 		mac := hmac.New(sha256.New, s.config.JwtSecret)
 		mac.Write([]byte(signingString))
 		if !hmac.Equal(mac.Sum(nil), rawSignature) {
@@ -278,10 +282,19 @@ func (s *StatSum) aggregateInternalMetrics() {
 		s.requestCount = 0
 		s.mMetrics.Unlock()
 
+		measures := []payload.Measure{}
+		cpuUsage, err := cpu.Percent(0, false)
+		if err != nil {
+			measures = append(measures, payload.Measure{
+				Key:   "cpu",
+				Value: []float64{cpuUsage[0]},
+			})
+		}
+
 		mem := runtime.MemStats{}
 		runtime.ReadMemStats(&mem)
 		s.aggregator.Process("statsum", &payload.Payload{
-			Measures: []payload.Measure{
+			Measures: append([]payload.Measure{
 				payload.Measure{
 					Key: "projects",
 					Value: []float64{
@@ -294,7 +307,7 @@ func (s *StatSum) aggregateInternalMetrics() {
 						float64(mem.Alloc),
 					},
 				},
-			},
+			}, measures...),
 			Counters: []payload.Counter{
 				payload.Counter{
 					Key:   "requests",
