@@ -4,6 +4,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -46,10 +47,24 @@ func main() {
 
 	switch {
 	case args["server"].(bool):
+		tlscert := os.Getenv("TLS_CERTIFICATE")
+		if tlscert != "" {
+			b, err := base64.StdEncoding.DecodeString(tlscert)
+			if err == nil {
+				tlscert = string(b)
+			}
+		}
+		tlskey := os.Getenv("TLS_KEY")
+		if tlskey != "" {
+			b, err := base64.StdEncoding.DecodeString(tlskey)
+			if err == nil {
+				tlskey = string(b)
+			}
+		}
 		s, err := server.New(server.Config{
 			Port:           os.Getenv("PORT"),
-			TLSCertificate: os.Getenv("TLS_CERTIFICATE"),
-			TLSKey:         os.Getenv("TLS_KEY"),
+			TLSCertificate: tlscert,
+			TLSKey:         tlskey,
 			JwtSecret:      secret,
 			SignalFxToken:  os.Getenv("SIGNALFX_TOKEN"),
 			DatadogAPIKey:  os.Getenv("DATADOG_API_KEY"),
