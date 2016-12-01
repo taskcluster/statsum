@@ -1,5 +1,5 @@
 
-TAG := v6
+TAG := v7
 
 install:
 	go get github.com/tinylib/msgp
