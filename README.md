@@ -49,3 +49,10 @@ the 25'th, 50'th, 75'th, 95'th and 99'th percentile.
 But beware when displaying these metrics in signalfx, datadog or similar
 services. These services may still aggregate the numbers when rendering graphs.
 Any such aggregation is naturally incorrect.
+
+### Building Statsum Server
+The server is located in `/cmd/statsum` to build it you must fetch govendor
+locked dependencies with `govendor sync`, then `go build ./cmd/statsum` will
+build the binary.
+
+Alternatively, the `make build` will do the same and build the docker image too.

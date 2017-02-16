@@ -1,15 +1,17 @@
 
-TAG := v7
+TAG := v8
 
 install:
 	go get github.com/tinylib/msgp
 	go get github.com/pquerna/ffjson
+	go get github.com/kardianos/govendor
 
 generate:
 	go generate ./...
 
 build:
-	go build && docker build -t jonasfj/statsum:latest .
+	govendor sync
+	go build ./cmd/statsum && docker build -t jonasfj/statsum:latest .
 
 push:
 	docker tag jonasfj/statsum:latest jonasfj/statsum:${TAG}
