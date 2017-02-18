@@ -31,7 +31,7 @@ type Config struct {
 // StaticConfigurer computes a JWT that is valid for 25 minutes, and rotated
 // every 10 minutes. This allows for 15 minutes clock drift, while ensuring that
 // all credentials being transmitted are temporary.
-func StaticConfigurer(baseURL string, secret string) Configurer {
+func StaticConfigurer(baseURL string, secret []byte) Configurer {
 	return func(project string) (Config, error) {
 		now := time.Now()
 		token := jwt.New(jwt.SigningMethodHS256)
@@ -134,7 +134,7 @@ func (s *Statsum) Measure(name string, values ...float64) {
 
 	// Increment data points, check we don't have too many
 	s.cache.dataPoints += len(values)
-	if s.cache.dataPoints > s.cache.options.MaxDataPoints {
+	if s.cache.dataPoints >= s.cache.options.MaxDataPoints {
 		s.taskAndFlush()
 	} else {
 		s.ensureTimeout()
@@ -156,7 +156,7 @@ func (s *Statsum) Count(name string, value float64) {
 
 	// Increment data points, check we don't have too many
 	s.cache.dataPoints++
-	if s.cache.dataPoints > s.cache.options.MaxDataPoints {
+	if s.cache.dataPoints >= s.cache.options.MaxDataPoints {
 		s.taskAndFlush()
 	} else {
 		s.ensureTimeout()
@@ -170,13 +170,8 @@ func (s *Statsum) Count(name string, value float64) {
 // making this a cheap operation that does not number of increase submission
 // requests, or require additional Flush calls.
 func (s *Statsum) WithPrefix(prefix string) *Statsum {
-	if len(s.prefix) > 0 && len(prefix) > 0 {
-		prefix = s.prefix + "." + prefix
-	} else {
-		prefix = s.prefix + prefix
-	}
 	return &Statsum{
-		prefix: prefix,
+		prefix: s.prefix + prefix + ".",
 		cache:  s.cache,
 	}
 }
@@ -191,6 +186,7 @@ func (s *Statsum) Flush() error {
 	measures := s.cache.measures
 	s.cache.counters = nil
 	s.cache.measures = nil
+	s.cache.dataPoints = 0
 
 	// Cancel timeouts
 	if s.cache.timer != nil {
@@ -217,6 +213,7 @@ func (s *Statsum) taskAndFlush() {
 	measures := s.cache.measures
 	s.cache.counters = nil
 	s.cache.measures = nil
+	s.cache.dataPoints = 0
 
 	// Cancel timeouts
 	if s.cache.timer != nil {
@@ -295,7 +292,7 @@ func (c *cache) submit(counters map[string]float64, measures map[string][]float6
 	}
 
 	// Construct request
-	request := c.g.Post(config.BaseURL+"/v1/projects/"+config.Project, nil)
+	request := c.g.Post(config.BaseURL+"/v1/project/"+config.Project, nil)
 	request.Header.Set("Accept", "application/json")
 	request.Header.Set("Authorization", "Bearer "+config.Token)
 	request.Header.Set("X-Statsum-Request-Id", uuid.NewRandom().String())
