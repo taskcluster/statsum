@@ -119,6 +119,14 @@ func New(project string, configurer Configurer, options Options) *Statsum {
 	}
 }
 
+// Time measures the time it takes to execute fn in milliseconds and reports
+// it as a measure for the given name.
+func (s *Statsum) Time(name string, fn func()) {
+	start := time.Now()
+	fn()
+	s.Measure(name, time.Now().Sub(start).Seconds()*1000)
+}
+
 // Measure one or more values for the given name
 func (s *Statsum) Measure(name string, values ...float64) {
 	// Lock cache data
