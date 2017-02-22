@@ -74,6 +74,23 @@ func TestClientAgainstServer(t *testing.T) {
 		client.cache.mData.Unlock()
 	})
 
+	t.Run("Time", func(t *testing.T) {
+		client.Time("test", func() {
+			time.Sleep(500 * time.Millisecond)
+		})
+		client.cache.mData.Lock()
+		assert.Contains(t, client.cache.measures, "test")
+		assert.InDelta(t, 500, client.cache.measures["test"][0], 100)
+		assert.EqualValues(t, client.cache.dataPoints, 1)
+		client.cache.mData.Unlock()
+
+		require.NoError(t, client.Flush())
+		client.cache.mData.Lock()
+		assert.NotContains(t, client.cache.measures, "test")
+		assert.EqualValues(t, client.cache.dataPoints, 0)
+		client.cache.mData.Unlock()
+	})
+
 	t.Run("WithPrefix", func(t *testing.T) {
 		c := client.WithPrefix("this")
 		c.Count("that", 42)
