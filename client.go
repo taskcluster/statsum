@@ -22,10 +22,10 @@ type Configurer func(project string) (Config, error)
 
 // Config required for statsum client to submit metrics.
 type Config struct {
-	Project string
-	BaseURL string
-	Token   string
-	expires time.Time
+	Project string    `json:"project"`
+	BaseURL string    `json:"baseUrl"`
+	Token   string    `json:"token"`
+	Expires time.Time `json:"expires"`
 }
 
 // StaticConfigurer computes a JWT that is valid for 25 minutes, and rotated
@@ -45,7 +45,7 @@ func StaticConfigurer(baseURL string, secret []byte) Configurer {
 			Project: project,
 			BaseURL: baseURL,
 			Token:   signedToken,
-			expires: now.Add(10 * time.Minute),
+			Expires: now.Add(10 * time.Minute),
 		}, nil
 	}
 }
@@ -258,7 +258,7 @@ func (c *cache) fetchConfig() (*Config, error) {
 	defer c.mConfig.Unlock()
 
 	// Update config if necessary
-	if c.config == nil || c.config.expires.Before(time.Now()) {
+	if c.config == nil || c.config.Expires.Before(time.Now()) {
 		cfg, err := c.configurer(c.project)
 		if err != nil {
 			return nil, err
