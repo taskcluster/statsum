@@ -56,3 +56,8 @@ locked dependencies with `govendor sync`, then `go build ./cmd/statsum` will
 build the binary.
 
 Alternatively, the `make build` will do the same and build the docker image too.
+
+
+## Service Owner
+
+Service Owner: jonasfj@mozilla.com
