@@ -14,6 +14,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	raven "github.com/getsentry/raven-go"
@@ -331,6 +332,7 @@ func (s *StatSum) scheduleSubmission() {
 	if s.config.SignalFxToken != "" {
 		drains = append(drains, newSignalfxDrain(s.config.SignalFxToken))
 	}
+	var errorCount int32
 	for {
 		now := time.Now().UTC()
 		nextTime := now.Truncate(5 * time.Minute).Add(5 * time.Minute)
@@ -349,15 +351,27 @@ func (s *StatSum) scheduleSubmission() {
 		// Send all metrics
 		wg := sync.WaitGroup{}
 		wg.Add(len(drains))
+		var hasErrors int32
 		for _, d := range drains {
 			go func(d drain) {
 				err := d.Flush()
 				if err != nil {
 					s.sentry.CaptureErrorAndWait(err, map[string]string{"drain": d.Name()})
 					log.Println("Failed to send metrics to drain, err: ", err)
+					atomic.AddInt32(&hasErrors, 1)
 				}
 				wg.Done()
 			}(d)
+		}
+
+		// Panic if error count gets too high
+		if hasErrors > 0 {
+			errorCount += hasErrors
+		} else {
+			errorCount = 0
+		}
+		if errorCount > int32(len(drains)*5) {
+			panic("errorCount > 5 x number of drains, we're going to crash!")
 		}
 	}
 }
