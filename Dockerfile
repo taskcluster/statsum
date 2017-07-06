@@ -1,4 +1,4 @@
-FROM        golang:1.7
+FROM        golang:1.8
 MAINTAINER  Jonas Finnemann Jensen <jopsen@gmail.com>
 ENV         PORT  443
 EXPOSE      443
