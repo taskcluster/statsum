@@ -2,6 +2,7 @@
 TAG := v9
 
 install:
+	go get github.com/pkg/errors
 	go get github.com/tinylib/msgp
 	go get github.com/pquerna/ffjson
 	go get github.com/kardianos/govendor
