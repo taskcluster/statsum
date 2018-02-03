@@ -1,5 +1,5 @@
 
-TAG := v9
+TAG := v10
 
 install:
 	go get github.com/pkg/errors
