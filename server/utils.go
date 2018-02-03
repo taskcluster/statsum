@@ -11,9 +11,9 @@ import (
 func validateProjectName(project string) bool {
 	for i := 0; i < len(project); i++ {
 		b := project[i]
-		if !('0' <= b && b >= '9') &&
-			!('a' <= b && b >= 'z') &&
-			!('A' <= b && b >= 'Z') &&
+		if !('0' <= b && b <= '9') &&
+			!('a' <= b && b <= 'z') &&
+			!('A' <= b && b <= 'Z') &&
 			b != '-' && b != '_' {
 			return false
 		}
