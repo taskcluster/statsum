@@ -57,6 +57,18 @@ build the binary.
 
 Alternatively, the `make build` will do the same and build the docker image too.
 
+### Configuring the Server
+
+When deploygin the server as built above, it requires the following
+environment variables:
+
+ * `JWT_SECRET_KEY`, symmetric secret that JWTs are signed with,
+ * `TLS_CERTIFICATE`, (optional) TLS certificate chain,
+ * `TLS_KEY`, (optional) TLS private key,
+ * `PORT`, port to listen on,
+ * `SIGNALFX_TOKEN`, signalfx token for sending metrics,
+ * `SENTRY_DSN`, sentry DSN for reporting errors,
+ * `PUBLIC_URL`, public URL to this server,
 
 ## Service Owner
 
