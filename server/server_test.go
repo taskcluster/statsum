@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -53,7 +54,7 @@ var testBody = payload.Payload{
 }
 
 func jsonBytes(p payload.Payload) []byte {
-	b, err := p.MarshalJSON()
+	b, err := json.Marshal(p)
 	nilOrPanic(err)
 	return b
 }
@@ -65,7 +66,7 @@ func msgpBytes(p payload.Payload) []byte {
 }
 
 func jsonBody(p payload.Payload) io.Reader {
-	b, err := p.MarshalJSON()
+	b, err := json.Marshal(p)
 	nilOrPanic(err)
 	return bytes.NewReader(b)
 }

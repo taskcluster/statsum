@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 	"strings"
@@ -88,7 +89,7 @@ func reply(w http.ResponseWriter, statusCode int, r payload.Response, responseTy
 	switch responseType {
 	case NoFormat, JSONFormat:
 		w.Header().Set("Content-Type", "application/json")
-		b, err = r.MarshalJSON()
+		b, err = json.Marshal(r)
 	case MsgPackFormat:
 		w.Header().Set("Content-Type", "application/msgpack")
 		b, err = r.MarshalMsg(b)

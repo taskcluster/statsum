@@ -5,6 +5,7 @@ package main
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -111,9 +112,9 @@ func main() {
 			fmt.Println("Error: ", err)
 			os.Exit(1)
 		}
-		json := args["--json"].(bool)
+		isJson := args["--json"].(bool)
 		format := "msgpack"
-		if json {
+		if isJson {
 			format = "json"
 		}
 
@@ -188,11 +189,11 @@ func main() {
 					}
 					return bytes.NewReader(b)
 				}
-				if json {
+				if isJson {
 					contentType = "application/json"
 					newBody = func() io.Reader {
 						payload := newPayload()
-						b, err := payload.MarshalJSON()
+						b, err := json.Marshal(payload)
 						if err != nil {
 							panic(err)
 						}

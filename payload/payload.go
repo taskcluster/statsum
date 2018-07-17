@@ -1,5 +1,4 @@
 //go:generate msgp
-//go:generate ffjson $GOFILE
 
 package payload
 
