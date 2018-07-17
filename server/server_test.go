@@ -105,6 +105,16 @@ func TestHandleCorrectPrefix(t *testing.T) {
 	assert(testMeasureMax == 9, "Expected prefix.test-measure.5m.max = 9")
 }
 
+func TestHandleInvalidNaN(t *testing.T) {
+	// this is *invalid* JSON -- NaN is not a legal identifier in a JSON document
+	var testBody = []byte("{\"counters\":null,\"measures\":[{\"k\":\"test-measure\",\"v\":[NaN]}]}")
+	r, _ := http.NewRequest("POST", "https://statsum.local/v1/project/prefix", bytes.NewReader(testBody))
+	r.Header.Set("Content-Type", "application/json")
+	r.Header.Set("Authorization", auth("prefix"))
+	w, _ := doTestRequest(r, nil)
+	assert(w.Code != http.StatusOK, "did not fail with invalid JSON")
+}
+
 func TestAggretation(t *testing.T) {
 	r, _ := http.NewRequest("POST", "https://statsum.local/v1/project/prefix", jsonBody(testBody))
 	r.Header.Set("Content-Type", "application/json")
