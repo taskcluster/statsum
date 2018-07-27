@@ -72,4 +72,4 @@ environment variables:
 
 ## Service Owner
 
-Service Owner: jonasfj@mozilla.com
+Service Owner: dustin@mozilla.com
