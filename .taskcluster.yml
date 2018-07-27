@@ -11,8 +11,7 @@ tasks:
       github:
         events:
           - push
-        branches:
-          - master
+          - pull_request.synchronize
     scopes:
       - auth:aws-s3:read-write:taskcluster-raw-docs/statsum/
     payload:
