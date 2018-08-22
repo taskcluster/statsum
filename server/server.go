@@ -227,7 +227,7 @@ func (s *StatSum) parse(project string, w http.ResponseWriter, r *http.Request) 
 	switch contentType {
 	case JSONFormat:
 		// Parse JSON
-		err = p.UnmarshalJSON(body)
+		err = json.Unmarshal(body, &p)
 		if err != nil {
 			reply(w, http.StatusBadRequest, payload.Response{
 				Code:    "InvalidPayload",

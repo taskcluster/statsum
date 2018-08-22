@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"math"
 	"net/http"
 	"time"
 
@@ -35,6 +36,10 @@ func (s *signalfxDrain) Name() string {
 }
 
 func (s *signalfxDrain) Send(name string, value float64, time time.Time) {
+	if math.IsNaN(value) {
+		fmt.Printf("Ignoring NaN value for metric %s\n", name)
+		return
+	}
 	s.points = append(s.points, datapoint{
 		Metric:    name,
 		Value:     value,

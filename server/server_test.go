@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -53,7 +54,7 @@ var testBody = payload.Payload{
 }
 
 func jsonBytes(p payload.Payload) []byte {
-	b, err := p.MarshalJSON()
+	b, err := json.Marshal(p)
 	nilOrPanic(err)
 	return b
 }
@@ -65,7 +66,7 @@ func msgpBytes(p payload.Payload) []byte {
 }
 
 func jsonBody(p payload.Payload) io.Reader {
-	b, err := p.MarshalJSON()
+	b, err := json.Marshal(p)
 	nilOrPanic(err)
 	return bytes.NewReader(b)
 }
@@ -103,6 +104,16 @@ func TestHandleCorrectPrefix(t *testing.T) {
 	})
 	assert(testCount == 42, "Expected prefix.test-count.5m.count = 42")
 	assert(testMeasureMax == 9, "Expected prefix.test-measure.5m.max = 9")
+}
+
+func TestHandleInvalidNaN(t *testing.T) {
+	// this is *invalid* JSON -- NaN is not a legal identifier in a JSON document
+	var testBody = []byte("{\"counters\":null,\"measures\":[{\"k\":\"test-measure\",\"v\":[NaN]}]}")
+	r, _ := http.NewRequest("POST", "https://statsum.local/v1/project/prefix", bytes.NewReader(testBody))
+	r.Header.Set("Content-Type", "application/json")
+	r.Header.Set("Authorization", auth("prefix"))
+	w, _ := doTestRequest(r, nil)
+	assert(w.Code != http.StatusOK, "did not fail with invalid JSON")
 }
 
 func TestAggretation(t *testing.T) {
