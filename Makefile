@@ -1,5 +1,5 @@
 
-TAG := v10
+TAG := v11
 
 install:
 	go get github.com/pkg/errors
@@ -12,11 +12,11 @@ generate:
 
 build:
 	govendor sync
-	go build ./cmd/statsum && docker build -t jonasfj/statsum:latest .
+	go build ./cmd/statsum && docker build -t taskcluster/statsum:latest .
 
 push:
-	docker tag jonasfj/statsum:latest jonasfj/statsum:${TAG}
-	docker push jonasfj/statsum:${TAG}
+	docker tag taskcluster/statsum:latest taskcluster/statsum:${TAG}
+	docker push taskcluster/statsum:${TAG}
 
 test:
 	go test -race -v ./...

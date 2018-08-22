@@ -56,6 +56,7 @@ locked dependencies with `govendor sync`, then `go build ./cmd/statsum` will
 build the binary.
 
 Alternatively, the `make build` will do the same and build the docker image too.
+To make a release, edit the Makefile to set a new `TAG`, and run `make push`.
 
 ### Configuring the Server
 
