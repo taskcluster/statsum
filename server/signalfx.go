@@ -55,6 +55,7 @@ func (s *signalfxDrain) Flush() error {
 	if err != nil {
 		panic(errors.Wrap(err, "failed to marshal payload to JSON"))
 	}
+
 	req.Header.Set("X-SF-Token", s.token)
 	res, err := req.Send()
 	if err != nil {
@@ -63,5 +64,8 @@ func (s *signalfxDrain) Flush() error {
 	if res.StatusCode != http.StatusOK {
 		return fmt.Errorf("Wrong status code from signalfx: %d", res.StatusCode)
 	}
+
+	s.points = []datapoint{} // release accumulated memory
+
 	return nil
 }
