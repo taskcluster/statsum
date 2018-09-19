@@ -1,5 +1,5 @@
 
-TAG := v11
+TAG := v12
 
 install:
 	go get github.com/pkg/errors
