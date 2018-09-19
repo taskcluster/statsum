@@ -11,6 +11,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/http/pprof"
+	"os"
 	"runtime"
 	"strings"
 	"sync"
@@ -54,8 +56,20 @@ func New(config Config) (*StatSum, error) {
 		server:     http.Server{},
 		aggregator: aggregator.NewAggregator(),
 	}
+
+	servMux := http.NewServeMux()
+	servMux.HandleFunc("/v1/project/", s.handler)
+
+	if os.Getenv("PROFILE") == "1" {
+		servMux.HandleFunc("/debug/pprof/", pprof.Index)
+		servMux.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+		servMux.HandleFunc("/debug/pprof/profile", pprof.Profile)
+		servMux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+		servMux.HandleFunc("/debug/pprof/trace", pprof.Trace)
+	}
+
 	s.server.Addr = fmt.Sprintf(":%s", config.Port)
-	s.server.Handler = http.HandlerFunc(s.handler)
+	s.server.Handler = servMux
 	s.server.ReadTimeout = 5000 * time.Second
 	s.server.WriteTimeout = 25 * time.Second
 	s.server.MaxHeaderBytes = 1 << 20
